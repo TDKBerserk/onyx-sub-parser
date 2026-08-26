@@ -1,15 +1,33 @@
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+const { TelegramClient } = require('telegram');
+const { StringSession } = require('telegram/sessions');
 
 // ====== НАСТРОЙКИ =====
 const MAX_CONFIGS = 1000;
 const SOURCE_TIMEOUT = 10000;
 const SOURCE_PARALLEL_LIMIT = 5;
 
-// Пример списков (замените или дополните своими данными)
+// Telegram API settings (из Secrets)
+const apiId = parseInt(process.env.TG_API_ID || "0", 10);
+const apiHash = process.env.TG_API_HASH || "";
+const stringSession = new StringSession(process.env.TG_SESSION || "");
+
+// Закрытые каналы Telegram
+const TG_CHANNELS = [
+  'VlessTrogan',
+  'hiddifycode',
+  'TunPass',
+  'ClosingVPN',
+  'LowiKForum',
+  'Ask_a_CM',
+  'urlsources',
+  'glforum'
+];
+
 const WHITELIST_DOMAINS = new Set(['cloudflare.com', 'google.com']);
-const PARSED_CIDRS = []; // Сюда передаются объекто-маски для CIDR
+const PARSED_CIDRS = [];
 
 function ipToLong(ip) {
   return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
@@ -29,18 +47,48 @@ function normalizeToRawUrl(url) {
   return url;
 }
 
-// ====== СПИСОК ИСТОЧНИКОВ ======
-function discoverSources() {
+// ====== ПОЛУЧЕНИЕ ДАННЫХ ИЗ ЗАКРЫТЫХ TG КАНАЛОВ ======
+async function fetchTelegramPosts() {
+  if (!apiId || !apiHash || !process.env.TG_SESSION) {
+    console.log("⚠️ Переменные Telegram не найдены. Пропускаем Telegram...");
+    return [];
+  }
+
+  console.log("📱 Подключение к Telegram ( GramJS )...");
+  const client = new TelegramClient(stringSession, apiId, apiHash, {
+    connectionRetries: 3,
+  });
+
+  const texts = [];
+  try {
+    await client.connect();
+    for (const channel of TG_CHANNELS) {
+      try {
+        const messages = await client.getMessages(channel, { limit: 15 });
+        for (const msg of messages) {
+          if (msg.message) texts.push(msg.message);
+        }
+      } catch (err) {
+        console.log(`⚠️ Ошибка чтения канала ${channel}:`, err.message);
+      }
+    }
+    await client.disconnect();
+  } catch (e) {
+    console.log("⚠️ Ошибка подключения к Telegram:", e.message);
+  }
+
+  return texts;
+}
+
+// ====== ВЕБ ИСТОЧНИКИ (GitHub / GitVerse) ======
+function discoverWebSources() {
   const sources = [
-    'https://tgstat.ru/channel/@VlessTrogan',
-    'https://tgstat.ru/channel/@hiddifycode',
-    'https://tgstat.ru/channel/@TunPass',
-    'https://tgstat.ru/channel/@ClosingVPN',
-    'https://tgstat.ru/channel/@LowiKForum',
-    'https://tgstat.ru/channel/@Ask_a_CM',
-    'https://tgstat.ru/channel/@urlsources',
-    'https://tgstat.ru/channel/@glforum',
+    'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/vless',
+    'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/trojan',
+    'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt',
+    'https://raw.githubusercontent.com/SubscribesCollection/V2ray-Configs/main/All_Configs_Sub.txt'
   ];
+
   return Array.from(new Set(sources)).map(normalizeToRawUrl);
 }
 
@@ -69,7 +117,8 @@ function extractConfigsFromText(text) {
   const list = [];
   if (!text) return list;
 
-  // Автоматическая распаковка Base64
+  text = text.replace(/&amp;/g, '&');
+
   if (!text.includes('vless://') && !text.includes('trojan://')) {
     try {
       const decoded = Buffer.from(text.trim(), 'base64').toString('utf-8');
@@ -79,7 +128,7 @@ function extractConfigsFromText(text) {
     } catch (e) {}
   }
 
-  const linkRegex = /(vless|trojan):\/\/[^\s"'<>`\\]+/g;
+  const linkRegex = /(vless|trojan):\/\/[^\s"'<>`\]+/g;
   const linkMatches = text.match(linkRegex) || [];
   linkMatches.forEach(link => list.push(link.trim()));
   return list;
@@ -115,7 +164,7 @@ function fetchTextWithHeaders(url) {
 }
 
 async function fetchAllSourcesParallel(sources) {
-  console.log(`📥 [onyxVPN] Скачивание ${sources.length} источников...`);
+  console.log(`📥 [onyxVPN] Скачивание ${sources.length} веб-источников...`);
   const results = [];
   let index = 0;
 
@@ -135,17 +184,22 @@ async function fetchAllSourcesParallel(sources) {
 // ====== ГЛАВНЫЙ ПРОЦЕСС ======
 async function main() {
   console.time("⏱️ Общее время выполнения");
-  console.log("🚀 Запуск фильтратора onyxVPN (БЕЗ ПИНГА И ПРОВЕРКИ СОЕДИНЕНИЯ)...");
+  console.log("🚀 Запуск парсера onyxVPN...");
   
-  const sources = discoverSources();
-  const rawTexts = await fetchAllSourcesParallel(sources);
+  // 1. Собираем тексты из Telegram и Веба
+  const tgTexts = await fetchTelegramPosts();
+  const webSources = discoverWebSources();
+  const webTexts = await fetchAllSourcesParallel(webSources);
+  
+  const rawTexts = [...tgTexts, ...webTexts];
+
   const finalConfigs = [];
   const seenUrls = new Set();
   const seenServers = new Set(); 
   let totalExtracted = 0;
   let rejectedByFilters = 0;
 
-  console.log("⚙️ Парсинг, фильтрация по SNI/CIDR и дедупликация...");
+  console.log("⚙️ Фильтрация, дедупликация и сборка...");
 
   for (const text of rawTexts) {
     if (finalConfigs.length >= MAX_CONFIGS) break;
@@ -174,7 +228,6 @@ async function main() {
         try { sni = decodeURIComponent(sniMatch[1]); } catch (e) { sni = sniMatch[1]; }
       }
 
-      // Фильтрация по Белым Спискам (SNI / CIDR)
       const sniValid = isSniAllowed(sni);
       const cidrValid = isIpInCidr(hostOrIp);
 
@@ -183,14 +236,12 @@ async function main() {
         continue; 
       }
 
-      // Уникальный ключ сервера для удаления повторов
       const serverKey = `${hostOrIp}:${port}:${sni || 'nosni'}`;
       if (seenServers.has(serverKey)) continue;
 
       seenUrls.add(line);
       seenServers.add(serverKey);
 
-      // 📍 ЗДЕСЬ УКАЗЫВАЕТСЯ ONYXVPN: Формирование нейминга конфига
       const currentSni = sni ? sni : hostOrIp;
       const label = `onyxVPN | ${currentSni}`;
       
@@ -199,16 +250,14 @@ async function main() {
   }
 
   console.log(`\n📊 Найдено сырых конфигураций: ${totalExtracted}`);
-  console.log(`✂️ Отсеяно фильтрами (не БС SNI/CIDR): ${rejectedByFilters}`);
-  console.log(`✅ Итого добавлено в файл (с учетом уникальности): ${finalConfigs.length}`);
+  console.log(`✂️ Отсеяно фильтрами: ${rejectedByFilters}`);
+  console.log(`✅ Итого добавлено: ${finalConfigs.length}`);
 
   const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  
-  // 📍 ЗДЕСЬ УКАЗЫВАЕТСЯ ONYXVPN: Заголовок файла подписки для V2RayN, Sing-Box, Flclash и др.
   const header = `#profile-title: onyxVPN Filtered\n#profile-update-interval: 1\n#announce: 👑 База прокси onyxVPN | Всего: ${finalConfigs.length} | ${timestamp} UTC\n\n`;
 
   fs.writeFileSync('configs.txt', header + finalConfigs.join('\n'));
-  console.log('💾 Результат успешно сохранен в configs.txt!');
+  console.log('💾 Результат сохранен в configs.txt!');
   console.timeEnd("⏱️ Общее время выполнения");
 }
 
