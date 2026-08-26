@@ -88,7 +88,7 @@ function normalizeToRawUrl(url) {
 // ====== СПИСОК ИСТОЧНИКОВ ======
 function discoverSources() {
   const sources = [
-    // Telegram-каналы и форумы (публичный веб-просмотр через /s/)
+    // Telegram-каналы и форумы (через /s/)
     'https://t.me/s/VlessTrogan',
     'https://t.me/s/hiddifycode',
     'https://t.me/s/TunPass',
@@ -98,20 +98,19 @@ function discoverSources() {
     'https://t.me/s/urlsources',
     'https://t.me/s/glforum',
 
-    // GitHub
+    // GitHub (Обновляемые базы VLESS / Trojan)
     'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/vless',
     'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/trojan',
     'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt',
-    'https://github.com/a2419036/v2ray-sources/blob/main/sources.txt',
-
-    // GitVerse (замените ссылки на рабочие публичные файлы)
-    'https://gitverse.ru/username/repository/blob/main/configs.txt',
-    'https://gitverse.ru/username/repository/raw/main/vless.txt'
+    'https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt',
+    'https://raw.githubusercontent.com/mftzahr/V2ray-Configs/main/All_Configs_Sub.txt',
+    'https://raw.githubusercontent.com/roosterkid/openproxystream/main/v2ray',
+    'https://raw.githubusercontent.com/awesome-vpn/free-vpn/main/v2ray.txt',
+    'https://raw.githubusercontent.com/EbrahimAfrasiabi/v2ray-configs/main/All_Configs_Sub.txt'
   ];
 
   return Array.from(new Set(sources)).map(normalizeToRawUrl);
 }
-
 // ====== ПРОВЕРКИ БЕЛЫХ СПИСКОВ ======
 function isIpInCidr(ip) {
   if (!/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) return false;
