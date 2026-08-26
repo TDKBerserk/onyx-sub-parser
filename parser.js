@@ -13,10 +13,6 @@ const ALLOWED_CIDRS = [
 // ====== ИСТОЧНИКИ ПОДПИСОК ======
 function discoverSources() {
   const sources = [
-    // GitHub и GitVerse источники (примеры):
-    // 'https://raw.githubusercontent.com/user/repo/main/servers.txt',
-    // 'https://gitverse.ru/user/repo/raw/main/vless.txt',
-
     // Telegram-каналы (формат предпросмотра /s/)
     'https://t.me/s/halyava_vpnz',
     'https://t.me/s/hiddifycode',
@@ -68,7 +64,8 @@ function extractConfigsFromText(text) {
     // Не Base64, продолжим с обычным текстом
   }
 
-  const regex = /(vless|trojan):\/\/[^\s"'<>`\]+/g;
+  // Безопасное регулярное выражение
+  const regex = /(vless|trojan):\/\/[^\s<>"']+/g;
   return text.match(regex) || [];
 }
 
