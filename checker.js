@@ -32,6 +32,14 @@ function normalizeToRawUrl(url) {
 // ====== СПИСОК ИСТОЧНИКОВ ======
 function discoverSources() {
   const sources = [
+    'https://tgstat.ru/channel/@VlessTrogan',
+    'https://tgstat.ru/channel/@hiddifycode',
+    'https://tgstat.ru/channel/@TunPass',
+    'https://tgstat.ru/channel/@ClosingVPN',
+    'https://tgstat.ru/channel/@LowiKForum',
+    'https://tgstat.ru/channel/@Ask_a_CM',
+    'https://tgstat.ru/channel/@urlsources',
+    'https://tgstat.ru/channel/@glforum',
     "https://gitverse.ru/api/repos/bywarm/rser/raw/branch/master/selected.txt",
     "https://gitverse.ru/api/repos/bywarm/rser/raw/branch/master/wl.txt",
     "https://gitverse.ru/api/repos/bywarm/rser/raw/branch/master/merged.txt",
