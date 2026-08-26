@@ -22,8 +22,8 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install telegram geoip-lite
-
+       - name: Install dependencies
+      run: npm install telegram telethon axios geoip-lite
       - name: Run checker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
