@@ -32,25 +32,18 @@ function normalizeToRawUrl(url) {
 // ====== СПИСОК ИСТОЧНИКОВ ======
 function discoverSources() {
   const sources = [
-    // Telegram-каналы (публичный просмотр через web-preview /s/)
-    'https://t.me/s/VlessTrogan',
-    'https://t.me/s/hiddifycode',
-    'https://t.me/s/TunPass',
-    'https://t.me/s/ClosingVPN',
-    'https://t.me/s/LowiKForum',
-    'https://t.me/s/Ask_a_CM',
-    'https://t.me/s/urlsources',
-    'https://t.me/s/glforum',
-
-    // GitHub сырые ссылки
+    // Стабильные агрегаторы подписок (GitHub RAW)
     'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/vless',
     'https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/trojan',
     'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt',
-    'https://github.com/a2419036/v2ray-sources/blob/main/sources.txt',
-
-    // GitVerse
-    'https://gitverse.ru/username/repository/blob/main/configs.txt',
-    'https://gitverse.ru/username/repository/raw/main/vless.txt'
+    'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Sub1.txt',
+    'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Sub2.txt',
+    'https://raw.githubusercontent.com/SubscribesCollection/V2ray-Configs/main/All_Configs_Sub.txt',
+    'https://raw.githubusercontent.com/free-v2ray/v2ray-free/main/v2ray',
+    
+    // Telegram через сторонние парсеры (не блокируют GitHub Actions)
+    'https://tgstat.ru/channel/@VlessTrogan',
+    'https://t.me/s/v2ray_free_conf'
   ];
 
   return Array.from(new Set(sources)).map(normalizeToRawUrl);
