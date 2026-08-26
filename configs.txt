@@ -1,1 +1,4 @@
-vless://53db95fa-4ebe-4450-8013-a2b0a5827f3f@87.58.205.109:443?flow=xtls-rprx-vision&amp;encryption=none&amp;security=reality&amp;sni=www.googletagmanager.com&amp;fp=chrome&amp;pbk=GUYDQKGvNl3_YozhbqG8bvecxjQ7HL5A8iqbuYBUUkw&amp;sid=01c1bb79d6a7c6cf&amp;type=tcp&amp;headerType=none#%F0%9F%87%B7%F0%9F%87%B4%D0%A0%D1%83%D0%BC%D1%8B%D0%BD%D0%B8%D1%8F-%D0%91%D1%83%D1%85%D0%B0%D1%80%D0%B5%D1%81%D1%82
+#profile-title: onyxVPN Filtered
+#profile-update-interval: 1
+#announce: 👑 База прокси onyxVPN | Всего: 0 | 2026-08-26 10:44:59 UTC
+
