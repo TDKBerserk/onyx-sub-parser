@@ -2,14 +2,13 @@ name: Run onyxVPN Checker
 
 on:
   schedule:
-    - cron: '0 */1 * * *' # Будет запускаться автоматически каждый час
-  workflow_dispatch:     # Позволит запускать скрипт руками кнопкой
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    # КРИТИЧНО: Даем права на запись для выполнения git push
+
     permissions:
       contents: write
 
@@ -20,26 +19,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
-      # ======================== ДОБАВЛЕННЫЙ ШАГ ========================
-      - name: Install turbo geo dependencies
-        run: npm install geoip-lite
-      # =================================================================
+      - name: Install dependencies
+        run: npm install telegram geoip-lite
 
       - name: Run checker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
         run: node checker.js
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add configs.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto-update subscription configs"
-            git push
-          else
-            echo "No changes to commit"
-          fi
