@@ -1,0 +1,30 @@
+name: Update Subscriptions
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Чеккаут репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Запуск парсера
+        run: node parser.js
+
+      - name: Сохранение изменений в репозиторий
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add configs.txt
+          git commit -m "Auto-update configs.txt [skip ci]" || exit 0
+          git push
