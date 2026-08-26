@@ -147,7 +147,7 @@ function extractConfigsFromText(text) {
     } catch (e) {}
   }
 
-  const linkRegex = /(vless|trojan):\/\/[^\s"'<>`\]+/g;
+  const linkRegex = /(vless|trojan):\/\/[^\s"'<>`]+/g;
   const linkMatches = text.match(linkRegex) || [];
   linkMatches.forEach(link => list.push(link.trim()));
   return list;
