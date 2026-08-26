@@ -22,7 +22,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install telegram telethon axios geoip-lite
+        run: npm install telegram axios geoip-lite
 
       - name: Run checker
         env:
