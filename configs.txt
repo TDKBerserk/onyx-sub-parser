@@ -1,0 +1,4 @@
+#profile-title: onyxVPN Filtered
+#profile-update-interval: 1
+#announce: 👑 База прокси onyxVPN | Всего: 0 | 2026-08-26 12:34:49 UTC
+
