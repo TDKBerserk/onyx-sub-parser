@@ -58,6 +58,7 @@ async function fetchTelegramPosts() {
     for (const channel of TG_CHANNELS) {
       try {
         const messages = await client.getMessages(channel, { limit: 15 });
+        console.log(`📡 Канал ${channel}: получено сообщений: ${messages.length}`);
         for (const msg of messages) {
           if (msg.message) texts.push(msg.message);
         }
@@ -90,7 +91,7 @@ function extractConfigsFromText(text) {
   const list = [];
   if (!text) return list;
 
-  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
   if (!text.includes('vless://') && !text.includes('trojan://') && !text.includes('vmess://') && !text.includes('ss://')) {
     try {
@@ -160,16 +161,18 @@ async function main() {
   console.log("🚀 Запуск парсера onyxVPN...");
   
   const tgTexts = await fetchTelegramPosts();
+  console.log(`📱 Всего получено блоков/сообщений из Telegram: ${tgTexts.length}`);
+
   const webSources = discoverWebSources();
   const webTexts = await fetchAllSourcesParallel(webSources);
+  console.log(`📥 Получено ответов от веб-источников: ${webTexts.length}`);
   
   const rawTexts = [...tgTexts, ...webTexts];
+  console.log(`📦 Всего текстов для анализа: ${rawTexts.length}`);
 
   const finalConfigs = [];
   const seenUrls = new Set();
   let totalExtracted = 0;
-
-  console.log("⚙️ Сбор и добавление всех найденных конфигов...");
 
   for (const text of rawTexts) {
     if (finalConfigs.length >= MAX_CONFIGS) break;
