@@ -1,30 +1,45 @@
-name: Update Subscriptions
+name: Run onyxVPN Checker
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 */1 * * *' # Будет запускаться автоматически каждый час
+  workflow_dispatch:     # Позволит запускать скрипт руками кнопкой
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    # КРИТИЧНО: Даем права на запись для выполнения git push
+    permissions:
+      contents: write
 
     steps:
-      - name: Чеккаут репозитория
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Установка Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 24
 
-      - name: Запуск парсера
-        run: node parser.js
+      # ======================== ДОБАВЛЕННЫЙ ШАГ ========================
+      - name: Install turbo geo dependencies
+        run: npm install geoip-lite
+      # =================================================================
 
-      - name: Сохранение изменений в репозиторий
+      - name: Run checker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node checker.js
+
+      - name: Commit and push changes
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add configs.txt
-          git diff --staged --quiet || git commit -m "Auto-update configs.txt"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update subscription configs"
+            git push
+          else
+            echo "No changes to commit"
+          fi
